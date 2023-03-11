@@ -1,0 +1,1 @@
+app.setWindowIcon(icons["logo"])
