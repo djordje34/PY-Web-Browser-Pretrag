@@ -34,6 +34,6 @@ from PyQt5.QtWidgets import *
 """
 cx_Freeze.setup(
         name = "Претраг the Browser",
-        options = {"build_exe":{"packages":["os","sys","qdarktheme","PyQt5"],"include_files":["icons/","anim/"]}},
+        options = {"build_exe":{"packages":["os","sys","qdarktheme","PyQt5","psutil","time"],"include_files":["icons/","anim/"]}},
         version="1.0",
         executables=[target]) 

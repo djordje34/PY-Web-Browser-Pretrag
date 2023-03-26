@@ -1,6 +1,8 @@
 import os
 import sys
+import time
 
+import psutil
 import qdarktheme
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
@@ -17,12 +19,16 @@ class MainWindow(QMainWindow):
                 btn = QAction(icon,text, self)
                 btn.setStatusTip(info)
             else:
-                btn = QAction(icon, self)
+                btn = QAction(text, self)
                 btn.setStatusTip(info)
             return btn
         
     # constructor
     def __init__(self, icons):
+        
+        
+        self.start_time = time.time()
+        
         super(MainWindow, self).__init__()
  
         # creating a tab widget
@@ -53,10 +59,10 @@ class MainWindow(QMainWindow):
         self.setStatusBar(self.status)
  
         # creating a tool bar for navigation
-        navtb = QToolBar("Navigation")
+        self.navtb = QToolBar("Navigation")
  
         # adding tool bar tot he main window
-        self.addToolBar(navtb)
+        self.addToolBar(self.navtb)
  
         # creating back action
         back_btn=self.defineNavButton(icons["back_dark"],"Back","Back to previous page")
@@ -68,18 +74,18 @@ class MainWindow(QMainWindow):
         back_btn.triggered.connect(lambda: self.tabs.currentWidget().back())
  
         # adding this to the navigation tool bar
-        navtb.addAction(back_btn)
+        self.navtb.addAction(back_btn)
  
         # similarly adding next button
         next_btn=self.defineNavButton(icons["forward_dark"],"Forward","Forward to next page")
         next_btn.triggered.connect(lambda: self.tabs.currentWidget().forward())
-        navtb.addAction(next_btn)
+        self.navtb.addAction(next_btn)
  
         # similarly adding reload button
         reload_btn=self.defineNavButton(icons["reload"],"Reload","Reload page")
 
         reload_btn.triggered.connect(lambda: self.tabs.currentWidget().reload())
-        navtb.addAction(reload_btn)
+        self.navtb.addAction(reload_btn)
  
         # creating home action
         home_btn=self.defineNavButton(icons["home_dark"],"Home","Go home")
@@ -87,10 +93,10 @@ class MainWindow(QMainWindow):
  
         # adding action to home button
         home_btn.triggered.connect(self.navigate_home)
-        navtb.addAction(home_btn)
+        self.navtb.addAction(home_btn)
  
         # adding a separator
-        navtb.addSeparator()
+        self.navtb.addSeparator()
  
         # creating a line edit widget for URL
         self.urlbar = QLineEdit()
@@ -99,12 +105,30 @@ class MainWindow(QMainWindow):
         self.urlbar.returnPressed.connect(self.navigate_to_url)
  
         # adding line edit to tool bar
-        navtb.addWidget(self.urlbar)
- 
+        self.navtb.addWidget(self.urlbar)
+        pctg = psutil.virtual_memory()[2]
+        
+        
+        
+
+        
+        timer = QTimer(self)
+        timer.timeout.connect(self.updateTime)
+        timer.start(1000)
+        
+        ntime = time.gmtime(time.time() - self.start_time)
+        self.vreme = self.defineNavButton("",f"Време: {time.strftime('%H:%M:%S',ntime)}",f"{ntime}",graphic=0)
+        self.navtb.addAction(self.vreme) 
+        
+        
+        self.ram = self.defineNavButton("",f"РАМ меморија: {pctg}%",f"{pctg}",graphic=0)
+        self.navtb.addAction(self.ram)
+        
+        
         # similarly adding stop action
-        stop_btn=self.defineNavButton(icons["stop"],"Stop","Stop loading current page")
-        stop_btn.triggered.connect(lambda: self.tabs.currentWidget().stop())
-        navtb.addAction(stop_btn)
+        self.stop_btn=self.defineNavButton(icons["stop"],"Stop","Stop loading current page")
+        self.stop_btn.triggered.connect(lambda: self.tabs.currentWidget().stop())
+        self.navtb.addAction(self.stop_btn)
  
         # creating first tab
         self.add_new_tab(QUrl('http://www.google.com'), 'Homepage')
@@ -114,7 +138,27 @@ class MainWindow(QMainWindow):
  
         # setting window title
         self.setWindowTitle("ПРЕТРАГ")
- 
+
+    def updateTime(self):
+        ntime = time.gmtime(time.time() - self.start_time)
+        if self.vreme:
+            self.navtb.removeAction(self.vreme)
+        self.vreme = self.defineNavButton("",f"Време: {time.strftime('%H:%M:%S',ntime)}",f"{ntime}",graphic=0)
+        self.navtb.addAction(self.vreme)    
+        
+        if self.ram:
+            self.navtb.removeAction(self.ram)
+        pctg = psutil.virtual_memory()[2]
+        self.ram = self.defineNavButton("",f"РАМ меморија: {pctg}%",f"{pctg}",graphic=0)
+        self.navtb.addAction(self.ram)
+        
+        if self.stop_btn:
+            self.navtb.removeAction(self.stop_btn)
+        self.stop_btn=self.defineNavButton(icons["stop"],"Stop","Stop loading current page")
+        self.stop_btn.triggered.connect(lambda: self.tabs.currentWidget().stop())
+        self.navtb.addAction(self.stop_btn)
+        
+            
     # method for adding new tab
     def add_new_tab(self, qurl = None, label ="Blank"):
  
